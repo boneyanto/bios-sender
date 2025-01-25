@@ -34,17 +34,10 @@ jobs:
       run: |
         echo "GOOGLE_CREDENTIALS length: ${#GOOGLE_CREDENTIALS}"
 
-    - name: Upload Report
+    - name: Upload Pages Artifact
       uses: actions/upload-pages-artifact@v2
       with:
         path: docs/
-
-    - name: Upload Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: report
-        path: report.html
-        retention-days: 1
 
   deploy:
     needs: [sync-data]
