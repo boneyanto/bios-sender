@@ -10,34 +10,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        pip install -r src/requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r src/requirements.txt
 
-    - name: Run sync
-      env:
-        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        SATKER: ${{ secrets.SATKER }}
-        API_KEY: ${{ secrets.API_KEY }}
-      run: |
-        python src/main.py
+      - name: Run sync
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          SATKER: ${{ secrets.SATKER }}
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          python src/main.py
 
-    - name: Check env vars
-      run: |
-        echo "GOOGLE_CREDENTIALS length: ${#GOOGLE_CREDENTIALS}"
+      - name: Check env vars
+        run: |
+          echo "GOOGLE_CREDENTIALS length: ${#GOOGLE_CREDENTIALS}"
 
-    - name: Upload Pages Artifact
-      uses: actions/upload-pages-artifact@v2
-      with:
-        path: 'docs/'
+      - name: Prepare Docs Folder
+        run: |
+          mkdir -p docs
+          cp report.html docs/
+          touch docs/.nojekyll
+          ls -la docs/  # Debugging: cek isi folder
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages  # Nama harus sama dengan download di deploy.yml
+          path: docs/
+          retention-days: 1
 
   deploy:
     needs: [sync-data]
@@ -50,9 +59,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: github-pages  # Nama harus sama dengan download
-          path: docs/
-          retention-days: 1
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
