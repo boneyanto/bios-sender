@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv
+from tabulate import tabulate
 
 # Load environment variables
 load_dotenv()
@@ -25,6 +26,14 @@ ENDPOINTS = {
     'saldo_operasional': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/saldo/saldo_operasional',
     'saldo_pengelolaan_kas': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/saldo/saldo_pengelolaan_kas',
     'saldo_dana_kelolaan': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/saldo/saldo_dana_kelolaan'
+}
+
+CHECK_ENDPOINTS = {
+    'penerimaan': 'https://training-bios2.kemenkeu.go.id/api/get/data/keuangan/akuntansi/penerimaan',
+    'pengeluaran': 'https://training-bios2.kemenkeu.go.id/api/get/data/keuangan/akuntansi/pengeluaran',
+    'saldo_operasional': 'https://training-bios2.kemenkeu.go.id/api/get/data/keuangan/saldo/saldo_operasional',
+    'saldo_pengelolaan_kas': 'https://training-bios2.kemenkeu.go.id/api/get/keuangan/saldo/saldo_pengelolaan_kas',
+    'saldo_dana_kelolaan': 'https://training-bios2.kemenkeu.go.id/api/get/data/keuangan/saldo/saldo_dana_kelolaan'
 }
 
 def get_api_token():
@@ -103,6 +112,46 @@ def send_data(endpoint, token, data):
         print(f"Error sending data: {str(e)}")
         return 500
 
+def fetch_data(endpoint, token):
+    """Fetch data from GET endpoint"""
+    try:
+        headers = {'Authorization': f'Bearer {token}'}
+        response = requests.get(endpoint, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Error fetching data: {str(e)}")
+        return None
+
+def generate_report(data_dict):
+    """Generate HTML report with tables"""
+    html_content = """
+    <html>
+    <head>
+        <title>Laporan Keuangan</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body class="container mt-4">
+        <h1 class="mb-4">Laporan Keuangan</h1>
+    """
+    
+    for name, data in data_dict.items():
+        if data and 'data' in data:
+            html_content += f"""
+            <h2>{name.capitalize()}</h2>
+            {tabulate(data['data'], headers="keys", tablefmt='html')}
+            <hr class="my-4">
+            """
+    
+    html_content += """
+        <p class="text-muted mt-4">Terakhir update: """ + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + """</p>
+    </body>
+    </html>
+    """
+    
+    with open('report.html', 'w') as f:
+        f.write(html_content)
+
 def main():
     """Main function"""
     print("Starting data sync...")
@@ -139,6 +188,19 @@ def main():
             print(f"Error processing {data_type}: {str(e)}")
             continue
             
+    print("\nData sync completed!")
+
+    report_data = {}
+    
+    print("\nChecking existing data...")
+    for name, endpoint in CHECK_ENDPOINTS.items():
+        print(f"Checking {name}...")
+        data = fetch_data(endpoint, token)
+        report_data[name] = data
+        
+    generate_report(report_data)
+    print("Report generated: report.html")
+    
     print("\nData sync completed!")
 
 if __name__ == "__main__":
