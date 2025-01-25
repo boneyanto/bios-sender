@@ -24,7 +24,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages  # Nama harus sama dengan upload
-          path: ./docs
+          path: ./public  # Path harus `./public` untuk GitHub Pages
 
       - name: Deploy to GitHub Pages
         id: deployment
