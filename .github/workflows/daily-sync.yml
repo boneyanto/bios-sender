@@ -33,3 +33,8 @@ jobs:
     - name: Check env vars
       run: |
         echo "GOOGLE_CREDENTIALS length: ${#GOOGLE_CREDENTIALS}"
+
+    - name: Upload Report
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: report.html
