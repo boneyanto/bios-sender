@@ -33,16 +33,23 @@ def get_api_token():
     return response.json().get('token')
 
 def get_sheet_data(sheet_id, sheet_name):
-    google_creds = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
-    
-    creds = Credentials.from_service_account_info(
-        google_creds,  # <-- sudah jadi dictionary
-        scopes=SCOPES
-    )
-    client = gspread.authorize(creds)
-    spreadsheet = client.open_by_key(sheet_id)
-    worksheet = spreadsheet.worksheet(sheet_name)
-    return worksheet.get_all_records()
+    try:
+        # Debug 1: Cek apakah credentials ada
+        raw_creds = os.getenv('GOOGLE_CREDENTIALS')
+        if not raw_creds:
+            raise Exception("GOOGLE_CREDENTIALS environment variable is empty")
+            
+        # Debug 2: Cek parsing JSON
+        print("Raw Credentials (first 50 chars):", raw_creds[:50] + "...")  # Jangan tampilkan semua
+        google_creds = json.loads(raw_creds)
+        
+        # Debug 3: Cek hasil parsing
+        print("Credentials Keys:", google_creds.keys())  # Harus muncul dictionary keys
+        
+        # ... (kode lanjutan)
+    except Exception as e:
+        print(f"Error in get_sheet_data: {str(e)}")
+        raise
 
 def send_data(endpoint, token, data):
     headers = {'Authorization': f'Bearer {token}'}
