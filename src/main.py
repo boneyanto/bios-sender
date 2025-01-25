@@ -32,8 +32,10 @@ def get_api_token():
     return response.json().get('token')
 
 def get_sheet_data(sheet_id, sheet_name):
+    google_creds = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
+    
     creds = Credentials.from_service_account_info(
-        os.getenv('GOOGLE_CREDENTIALS'),
+        google_creds,  # <-- sudah jadi dictionary
         scopes=SCOPES
     )
     client = gspread.authorize(creds)
