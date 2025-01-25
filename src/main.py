@@ -149,7 +149,7 @@ def generate_report(data_dict):
     </html>
     """
     
-    with open('report.html', 'w') as f:
+    with open('docs/report.html', 'w') as f:
         f.write(html_content)
 
 def main():
