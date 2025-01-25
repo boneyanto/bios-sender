@@ -12,11 +12,11 @@ load_dotenv()
 # Configurations
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SHEET_IDS = {
-    'penerimaan': '1loDtJGrMCHKrh5kkqF3Wkj6hZJqZGDd5',
+    'penerimaan': '1ayQ5Y2-NwlCBYFZjsEFJvi67zbubmUdqMtOeDfC-E7U',
     'pengeluaran': '1H0aR41ZGtFE1WSCyObTqbUDzsB6NKAg--PUw0577fK8',
-    'saldo_operasional': '1lwgiS1eXtg8XrirQ_4fO91-OjdVVHA4x',
+    'saldo_operasional': '1_lm0MA9F68SEIXA8s4XfsGVWiF-Cja3EymEd4ou4PlE',
     'saldo_pengelolaan_kas': '1IItvpcxH14GLCO1tIGVz0plA8dHe5vqd0_Z4jMxNV80',
-    'saldo_dana_kelolaan': '1m52DWPAR1icWNJ4xbwP2NCG5dy6HoXbY'
+    'saldo_dana_kelolaan': '1BHSukPx8K-PljTnhxxkfoGAp4RQmZbrhiv66hyGzp_g'
 }
 
 ENDPOINTS = {
