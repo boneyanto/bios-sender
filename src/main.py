@@ -26,7 +26,7 @@ def get_api_token():
     auth_url = "https://training-bios2.kemenkeu.go.id/api/token"
     payload = {
         "satker": os.getenv('SATKER'),
-        "key": os.getenv('API_KEY")
+        "key": os.getenv('API_KEY')
     }
     response = requests.post(auth_url, data=payload)
     return response.json().get('token')
