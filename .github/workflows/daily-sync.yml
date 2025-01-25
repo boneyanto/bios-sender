@@ -37,7 +37,7 @@ jobs:
     - name: Upload Pages Artifact
       uses: actions/upload-pages-artifact@v2
       with:
-        path: docs/
+        path: 'docs/'
 
   deploy:
     needs: [sync-data]
@@ -53,5 +53,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: report
