@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   workflow_run:
     workflows: ["Daily Data Sync"]
+    branches: [main]
     types:
       - completed
 
@@ -14,13 +15,17 @@ jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: report
+          name: github-pages  # Nama harus sama dengan upload
           path: ./public
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
