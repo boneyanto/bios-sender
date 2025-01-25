@@ -50,6 +50,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages  # Nama harus sama dengan download
+          path: docs/
+          retention-days: 1
