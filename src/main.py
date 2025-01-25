@@ -1,11 +1,15 @@
 import os
 import gspread
-import requests
-from google.oauth2.service_account import Credentials
-from datetime import datetime
 import json
+import requests
+from datetime import datetime
+from google.oauth2.service_account import Credentials
+from dotenv import load_dotenv
 
-# Config
+# Load environment variables
+load_dotenv()
+
+# Configurations
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SHEET_IDS = {
     'penerimaan': '1loDtJGrMCHKrh5kkqF3Wkj6hZJqZGDd5',
@@ -24,58 +28,118 @@ ENDPOINTS = {
 }
 
 def get_api_token():
-    auth_url = "https://training-bios2.kemenkeu.go.id/api/token"
-    payload = {
-        "satker": os.getenv('SATKER'),
-        "key": os.getenv('API_KEY')
-    }
-    response = requests.post(auth_url, data=payload)
-    return response.json().get('token')
-
-def get_sheet_data(sheet_id, sheet_name):
+    """Get API authentication token"""
     try:
-        # Debug 1: Cek apakah credentials ada
+        auth_url = "https://training-bios2.kemenkeu.go.id/api/token"
+        payload = {
+            "satker": os.getenv('SATKER'),
+            "key": os.getenv('API_KEY')
+        }
+        response = requests.post(auth_url, data=payload)
+        response.raise_for_status()
+        return response.json().get('token')
+    except Exception as e:
+        print(f"Error getting API token: {str(e)}")
+        return None
+
+def get_sheet_data(sheet_id, sheet_name='Sheet1'):
+    """Get data from Google Sheets"""
+    try:
+        # Parse credentials
         raw_creds = os.getenv('GOOGLE_CREDENTIALS')
         if not raw_creds:
-            raise Exception("GOOGLE_CREDENTIALS environment variable is empty")
+            raise ValueError("GOOGLE_CREDENTIALS environment variable is empty")
             
-        # Debug 2: Cek parsing JSON
-        print("Raw Credentials (first 50 chars):", raw_creds[:50] + "...")  # Jangan tampilkan semua
         google_creds = json.loads(raw_creds)
+        creds = Credentials.from_service_account_info(google_creds, scopes=SCOPES)
         
-        # Debug 3: Cek hasil parsing
-        print("Credentials Keys:", google_creds.keys())  # Harus muncul dictionary keys
+        # Access spreadsheet
+        client = gspread.authorize(creds)
+        spreadsheet = client.open_by_key(sheet_id)
         
-        # ... (kode lanjutan)
+        # Access worksheet
+        try:
+            worksheet = spreadsheet.worksheet(sheet_name)
+        except gspread.exceptions.WorksheetNotFound:
+            print(f"Worksheet '{sheet_name}' not found in sheet {sheet_id}")
+            return []
+            
+        # Get records
+        records = worksheet.get_all_records()
+        if not records:
+            print(f"No data found in sheet {sheet_id}/{sheet_name}")
+            return []
+            
+        return records
+        
     except Exception as e:
-        print(f"Error in get_sheet_data: {str(e)}")
-        raise
+        print(f"Error getting sheet data: {str(e)}")
+        return []
 
 def send_data(endpoint, token, data):
-    headers = {'Authorization': f'Bearer {token}'}
-    response = requests.post(endpoint, json=data, headers=headers)
-    return response.status_code
+    """Send data to API endpoint"""
+    try:
+        headers = {'Authorization': f'Bearer {token}'}
+        
+        # Convert date format
+        if 'tgl_transaksi' in data:
+            data['tgl_transaksi'] = datetime.strptime(
+                data['tgl_transaksi'], '%d/%m/%Y'
+            ).strftime('%Y-%m-%d')
+            
+        # Convert numeric fields
+        numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga']
+        for field in numeric_fields:
+            if field in data:
+                data[field] = float(data[field])
+        
+        response = requests.post(endpoint, json=data, headers=headers)
+        response.raise_for_status()
+        return response.status_code
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP Error: {e.response.text}")
+        return e.response.status_code
+    except Exception as e:
+        print(f"Error sending data: {str(e)}")
+        return 500
 
 def main():
-    token = get_api_token()
+    """Main function"""
+    print("Starting data sync...")
     
+    # Get API token
+    token = get_api_token()
+    if not token:
+        print("Failed to get API token. Exiting.")
+        return
+        
+    print("Successfully obtained API token")
+    
+    # Process each data type
     for data_type, sheet_id in SHEET_IDS.items():
         try:
-            records = get_sheet_data(sheet_id, 'Sheet1')  # Ganti dengan nama sheet yang sesuai
+            print(f"\nProcessing {data_type}...")
+            
+            # Get data from sheet
+            records = get_sheet_data(sheet_id)
+            print(f"Found {len(records)} records")
+            
+            if not records:
+                continue
+                
             endpoint = ENDPOINTS[data_type]
             
-            for record in records:
-                # Convert date format if needed
-                if 'tgl_transaksi' in record:
-                    record['tgl_transaksi'] = datetime.strptime(
-                        record['tgl_transaksi'], '%d/%m/%Y'
-                    ).strftime('%Y-%m-%d')
-                
+            # Send each record
+            for idx, record in enumerate(records, 1):
+                print(f"Sending record {idx}/{len(records)}")
                 status = send_data(endpoint, token, record)
-                print(f"Sent {data_type} data - Status: {status}")
+                print(f"Status: {status}")
                 
         except Exception as e:
             print(f"Error processing {data_type}: {str(e)}")
+            continue
+            
+    print("\nData sync completed!")
 
 if __name__ == "__main__":
     main()
