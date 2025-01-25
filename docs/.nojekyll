@@ -1,0 +1,3 @@
+# Tambahkan di akhir fungsi generate_report()
+with open('docs/.nojekyll', 'w') as f:
+    f.write('')  # File kosong untuk disable Jekyll
