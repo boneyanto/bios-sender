@@ -15,7 +15,7 @@ SHEET_IDS = {
     'penerimaan': '1loDtJGrMCHKrh5kkqF3Wkj6hZJqZGDd5',
     'pengeluaran': '1lsepC97hH0cN6J6_CvU6zleenexq_MVd',
     'saldo_operasional': '1lwgiS1eXtg8XrirQ_4fO91-OjdVVHA4x',
-    'saldo_pengelolaan_kas': '1m1prCpKIAEbhGA7Pa98sBzGXt4Zo0sBT',
+    'saldo_pengelolaan_kas': '1IItvpcxH14GLCO1tIGVz0plA8dHe5vqd0_Z4jMxNV80',
     'saldo_dana_kelolaan': '1m52DWPAR1icWNJ4xbwP2NCG5dy6HoXbY'
 }
 
