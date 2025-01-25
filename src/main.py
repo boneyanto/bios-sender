@@ -13,7 +13,7 @@ load_dotenv()
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SHEET_IDS = {
     'penerimaan': '1loDtJGrMCHKrh5kkqF3Wkj6hZJqZGDd5',
-    'pengeluaran': '1lsepC97hH0cN6J6_CvU6zleenexq_MVd',
+    'pengeluaran': '1H0aR41ZGtFE1WSCyObTqbUDzsB6NKAg--PUw0577fK8',
     'saldo_operasional': '1lwgiS1eXtg8XrirQ_4fO91-OjdVVHA4x',
     'saldo_pengelolaan_kas': '1IItvpcxH14GLCO1tIGVz0plA8dHe5vqd0_Z4jMxNV80',
     'saldo_dana_kelolaan': '1m52DWPAR1icWNJ4xbwP2NCG5dy6HoXbY'
