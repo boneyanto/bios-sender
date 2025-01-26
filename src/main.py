@@ -112,45 +112,81 @@ def send_data(endpoint, token, data):
         print(f"Error sending data: {str(e)}")
         return 500
 
-def fetch_data(endpoint, token):
-    """Fetch data from GET endpoint"""
+def fetch_data(endpoint, token, payload=None):
+    """Fetch data from POST endpoint"""
     try:
-        headers = {'Authorization': f'Bearer {token}'}
-        response = requests.get(endpoint, headers=headers)
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Jika payload tidak diberikan, gunakan payload default
+        if payload is None:
+            payload = {
+                "satker": os.getenv('SATKER'),  # Contoh payload
+                "key": os.getenv('API_KEY')
+            }
+        
+        response = requests.post(endpoint, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        
+        # Validasi struktur data
+        if not data or 'data' not in data:
+            print(f"Data dari {endpoint} tidak valid: {data}")
+            return None
+            
+        return data
     except Exception as e:
         print(f"Error fetching data: {str(e)}")
         return None
 
 def generate_report(data_dict):
     """Generate HTML report with tables"""
-    html_content = """
-    <html>
-    <head>
-        <title>Laporan Keuangan</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body class="container mt-4">
-        <h1 class="mb-4">Laporan Keuangan</h1>
-    """
-    
-    for name, data in data_dict.items():
-        if data and 'data' in data:
-            html_content += f"""
-            <h2>{name.capitalize()}</h2>
-            {tabulate(data['data'], headers="keys", tablefmt='html')}
-            <hr class="my-4">
-            """
-    
-    html_content += """
-        <p class="text-muted mt-4">Terakhir update: """ + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + """</p>
-    </body>
-    </html>
-    """
-    
-    with open('docs/report.html', 'w') as f:
-        f.write(html_content)
+    try:
+        # Pastikan folder docs ada
+        os.makedirs('docs', exist_ok=True)
+
+        # Buat konten HTML
+        html_content = """
+        <html>
+        <head>
+            <title>Laporan Keuangan</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="container mt-4">
+            <h1 class="mb-4">Laporan Keuangan</h1>
+        """
+
+        # Tambahkan tabel untuk setiap jenis data
+        for name, data in data_dict.items():
+            if data and 'data' in data and data['data']:  # Pastikan data tidak kosong
+                html_content += f"""
+                <h2>{name.capitalize()}</h2>
+                {tabulate(data['data'], headers="keys", tablefmt='html')}
+                <hr class="my-4">
+                """
+            else:
+                print(f"Data {name} kosong atau tidak valid")
+
+        # Tambahkan timestamp
+        html_content += f"""
+            <p class="text-muted mt-4">Terakhir update: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+        </body>
+        </html>
+        """
+
+        # Simpan ke file
+        with open('docs/report.html', 'w', encoding='utf-8') as f:
+            f.write(html_content)
+
+        # Buat file .nojekyll
+        with open('docs/.nojekyll', 'w') as f:
+            f.write('')
+
+        print("Report berhasil di-generate: docs/report.html")
+    except Exception as e:
+        print(f"Error generate_report: {str(e)}")
 
 def main():
     """Main function"""
@@ -190,16 +226,30 @@ def main():
             
     print("\nData sync completed!")
 
+    # Check data dan generate report
     report_data = {}
     
     print("\nChecking existing data...")
     for name, endpoint in CHECK_ENDPOINTS.items():
         print(f"Checking {name}...")
-        data = fetch_data(endpoint, token)
-        report_data[name] = data
         
-    generate_report(report_data)
-    print("Report generated: report.html")
+        # Contoh payload untuk POST (sesuaikan dengan kebutuhan API)
+        payload = {
+            "satker": os.getenv('SATKER'),
+            "key": os.getenv('API_KEY')
+        }
+        
+        data = fetch_data(endpoint, token, payload)
+        if data:
+            report_data[name] = data
+        else:
+            print(f"Data {name} tidak ditemukan atau tidak valid")
+        
+    if report_data:
+        generate_report(report_data)
+        print("Report generated: docs/report.html")
+    else:
+        print("Tidak ada data yang valid untuk di-generate")
     
     print("\nData sync completed!")
 
