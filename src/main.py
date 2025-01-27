@@ -124,12 +124,20 @@ def send_data(endpoint, token, data):
         
         # Cek respons API
         api_response = response.json()
-        if api_response.get('status') != 'MSG20001':  # Sesuaikan dengan kode sukses API
+        print(f"📥 Respons API: {json.dumps(api_response, indent=2)}")  # Log respons API
+        
+        # Perbaiki pengecekan sukses
+        if api_response.get('status') == 'MSG20005' or "tidak valid" in api_response.get('message', '').lower():
             error_msg = f"ERROR API: {api_response.get('message')}"
             print(error_msg)
             return False, error_msg
-        
-        return True, "Sukses"  # Return status sukses
+        elif "berhasil" in api_response.get('message', '').lower():
+            print("✅ Data berhasil dikirim")
+            return True, "Sukses"
+        else:
+            error_msg = f"ERROR API: Respons tidak dikenali - {api_response.get('message')}"
+            print(error_msg)
+            return False, error_msg
         
     except Exception as e:
         error_msg = f"ERROR: Gagal mengirim data - {str(e)}"
