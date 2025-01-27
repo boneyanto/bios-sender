@@ -92,7 +92,7 @@ def send_data(endpoint, token, data):
             ).strftime('%Y-%m-%d')
             
         # Convert numeric fields
-        numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga', 'profesor_pns', 'profesor_non_pns', 'lektor_kepala_pns', 'lektor_kepala_non_pns', 'lektor_pns', 'lektor_non_pns', 'asisten_ahli_pns', 'asisten_ahli_non_pns', 'tenaga_pengajar_pns', 'tenaga_pengajar_non_pns', 'terkualifikasi_s3', 'pegawai_pppk', 'pns', 'non_pns']
+        numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga', 'professor_pns', 'professor_non_pns', 'lektor_kepala_pns', 'lektor_kepala_non_pns', 'lektor_pns', 'lektor_non_pns', 'asisten_ahli_pns', 'asisten_ahli_non_pns', 'tenaga_pengajar_pns', 'tenaga_pengajar_non_pns', 'terkualifikasi_s3', 'pegawai_pppk', 'pns', 'non_pns']
         for field in numeric_fields:
             if field in data:
                 # Handle empty string or invalid values
