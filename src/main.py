@@ -81,78 +81,109 @@ def get_sheet_data(sheet_id, sheet_name='Sheet1'):
         return []
 
 def send_data(endpoint, token, data):
-    """Send data to API endpoint"""
+    """Send data to API endpoint and return status + error message"""
     try:
         headers = {'Authorization': f'Bearer {token}'}
         
-        # Convert date format
+        # Validasi tanggal transaksi
         if 'tgl_transaksi' in data:
-            data['tgl_transaksi'] = datetime.strptime(
-                data['tgl_transaksi'], '%d/%m/%Y'
-            ).strftime('%Y-%m-%d')
+            # Konversi format tanggal
+            input_date = datetime.strptime(data['tgl_transaksi'], '%d/%m/%Y')
+            today_date = datetime.today()
             
-        # Convert numeric fields
+            # Cek apakah tanggal melebihi hari ini
+            if input_date > today_date:
+                error_msg = f"ERROR: Tanggal transaksi {data['tgl_transaksi']} melebihi hari ini"
+                print(error_msg)
+                return False, error_msg  # Return status gagal
+            
+            data['tgl_transaksi'] = input_date.strftime('%Y-%m-%d')
+            
+        # Konversi field numerik
         numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga', 'professor_pns', 'professor_non_pns', 'lektor_kepala_pns', 'lektor_kepala_non_pns', 'lektor_pns', 'lektor_non_pns', 'asisten_ahli_pns', 'asisten_ahli_non_pns', 'tenaga_pengajar_pns', 'tenaga_pengajar_non_pns', 'terkualifikasi_s3', 'pegawai_pppk', 'pns', 'non_pns']
+        
         for field in numeric_fields:
             if field in data:
-                # Handle empty string or invalid values
-                if data[field] == '':
-                    data[field] = 0.0  # Set default value to 0.0
+                # Handle nilai kosong
+                if data[field] in ['', None]:
+                    data[field] = 0.0
                 try:
                     data[field] = float(data[field])
-                except ValueError as e:
-                    print(f"Error converting field {field} to float: {str(e)}")
-                    data[field] = 0.0  # Set default value to 0.0 if conversion fails
+                except Exception as e:
+                    error_msg = f"ERROR: Gagal konversi {field} ke angka: {str(e)}"
+                    print(error_msg)
+                    return False, error_msg  # Return status gagal
         
-        print(f"Sending data to {endpoint}: {json.dumps(data, indent=2)}")  # Log data yang dikirim
+        # Debug: Tampilkan data yang akan dikirim
+        print(f"\n📤 Mengirim data ke {endpoint}:")
+        print(json.dumps(data, indent=2))
+        
+        # Kirim data
         response = requests.post(endpoint, json=data, headers=headers)
         response.raise_for_status()
-        print(f"Response: {response.text}")  # Log respons dari API
-        return response.status_code
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP Error: {e.response.text}")
-        return e.response.status_code
+        
+        # Cek respons API
+        api_response = response.json()
+        if api_response.get('status') != 'MSG20001':  # Sesuaikan dengan kode sukses API
+            error_msg = f"ERROR API: {api_response.get('message')}"
+            print(error_msg)
+            return False, error_msg
+        
+        return True, "Sukses"  # Return status sukses
+        
     except Exception as e:
-        print(f"Error sending data: {str(e)}")
-        return 500
+        error_msg = f"ERROR: Gagal mengirim data - {str(e)}"
+        print(error_msg)
+        return False, error_msg  # Return status gagal
 
 def main():
-    """Main function"""
-    print("Starting data sync...")
+    """Main function dengan error handling"""
+    print("Memulai sinkronisasi data...")
     
-    # Get API token
+    # Dapatkan token API
     token = get_api_token()
     if not token:
-        print("Failed to get API token. Exiting.")
+        print("Gagal mendapatkan token API. Keluar.")
         return
-        
-    print("Successfully obtained API token")
     
-    # Process each data type
+    # Proses setiap tipe data
     for data_type, sheet_id in SHEET_IDS.items():
         try:
-            print(f"\nProcessing {data_type}...")
+            print(f"\n🔍 Memproses {data_type}...")
             
-            # Get data from sheet
+            # Ambil data dari Google Sheet
             records = get_sheet_data(sheet_id)
-            print(f"Found {len(records)} records")
-            
             if not records:
+                print("❌ Tidak ada data yang ditemukan")
                 continue
                 
+            print(f"📊 Ditemukan {len(records)} record")
+            
             endpoint = ENDPOINTS[data_type]
+            success_count = 0
             
-            # Send each record
+            # Kirim data per record
             for idx, record in enumerate(records, 1):
-                print(f"Sending record {idx}/{len(records)}")
-                status = send_data(endpoint, token, record)
-                print(f"Status: {status}")
+                print(f"\n📨 Record {idx}/{len(records)}")
+                success, message = send_data(endpoint, token, record)
                 
-        except Exception as e:
-            print(f"Error processing {data_type}: {str(e)}")
-            continue
+                if not success:
+                    print(f"❌ Gagal mengirim record {idx}. Proses dihentikan!")
+                    print(f"💡 Pesan error: {message}")
+                    print(f"💾 Record terakhir yang gagal: {json.dumps(record, indent=2)}")
+                    break  # Hentikan proses untuk tipe data ini
+                
+                success_count += 1
+                print(f"✅ Berhasil mengirim record {idx}")
             
-    print("\nData sync completed!")
+            print(f"\n📊 Ringkasan {data_type}:")
+            print(f"Total sukses: {success_count}/{len(records)}")
+            
+        except Exception as e:
+            print(f"❌ Error fatal: {str(e)}")
+            break  # Hentikan seluruh proses
+
+    print("\nSinkronisasi selesai!")
 
 if __name__ == "__main__":
     main()
