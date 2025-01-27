@@ -92,7 +92,7 @@ def send_data(endpoint, token, data):
             ).strftime('%Y-%m-%d')
             
         # Convert numeric fields
-        numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga']
+        numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga', 'profesor_pns', 'lektor_kepala_pns', 'lektor_pns', 'asisten_ahli_pns', 'terkualifikasi_s3', 'pns', 'non_pns']
         for field in numeric_fields:
             if field in data:
                 data[field] = float(data[field])
