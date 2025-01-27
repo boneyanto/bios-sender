@@ -16,7 +16,9 @@ SHEET_IDS = {
     'pengeluaran': '1H0aR41ZGtFE1WSCyObTqbUDzsB6NKAg--PUw0577fK8',
     'saldo_operasional': '1_lm0MA9F68SEIXA8s4XfsGVWiF-Cja3EymEd4ou4PlE',
     'saldo_pengelolaan_kas': '1IItvpcxH14GLCO1tIGVz0plA8dHe5vqd0_Z4jMxNV80',
-    'saldo_dana_kelolaan': '1BHSukPx8K-PljTnhxxkfoGAp4RQmZbrhiv66hyGzp_g'
+    'saldo_dana_kelolaan': '1BHSukPx8K-PljTnhxxkfoGAp4RQmZbrhiv66hyGzp_g',
+    'jumlah_dosen': '11wNwBoBClTfjtooUs8Ngx0qWdu1IRVfwB4beiyEXb7Q',
+    'jumlah_tendik': '1ljT3L7eZjgI8LFnC6C_KpK2_QRSYRxhFCfPEsofnqkI'
 }
 
 ENDPOINTS = {
@@ -24,7 +26,9 @@ ENDPOINTS = {
     'pengeluaran': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/akuntansi/pengeluaran',
     'saldo_operasional': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/saldo/saldo_operasional',
     'saldo_pengelolaan_kas': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/saldo/saldo_pengelolaan_kas',
-    'saldo_dana_kelolaan': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/saldo/saldo_dana_kelolaan'
+    'saldo_dana_kelolaan': 'https://training-bios2.kemenkeu.go.id/api/ws/keuangan/saldo/saldo_dana_kelolaan',
+    'jumlah_dosen': 'https://training-bios2.kemenkeu.go.id/api/ws/pendidikan/sdm/jumlah_tenaga_pendidik_ptn',
+    'jumlah_tendik': 'https://training-bios2.kemenkeu.go.id/api/ws/pendidikan/sdm/jumlah_tenaga_kependidikan'
 }
 
 def get_api_token():
