@@ -92,13 +92,19 @@ def send_data(endpoint, token, data):
             ).strftime('%Y-%m-%d')
             
         # Convert numeric fields
-        numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga', 'profesor_pns', 'lektor_kepala_pns', 'lektor_pns', 'asisten_ahli_pns', 'terkualifikasi_s3', 'pns', 'non_pns']
+        numeric_fields = ['jumlah', 'saldo_akhir', 'nilai_deposito', 'nilai_bunga', 'profesor_pns', 'profesor_non_pns', 'lektor_kepala_pns', 'lektor_kepala_non_pns', 'lektor_pns', 'lektor_non_pns', 'asisten_ahli_pns', 'asisten_ahli_non_pns', 'tenaga_pengajar_pns', 'tenaga_pengajar_non_pns', 'terkualifikasi_s3', 'pegawai_pppk', 'pns', 'non_pns']
         for field in numeric_fields:
             if field in data:
-                data[field] = float(data[field])
+                try:
+                    data[field] = float(data[field])
+                except ValueError as e:
+                    print(f"Error converting field {field} to float: {str(e)}")
+                    return 400
         
+        print(f"Sending data to {endpoint}: {json.dumps(data, indent=2)}")  # Log data yang dikirim
         response = requests.post(endpoint, json=data, headers=headers)
         response.raise_for_status()
+        print(f"Response: {response.text}")  # Log respons dari API
         return response.status_code
     except requests.exceptions.HTTPError as e:
         print(f"HTTP Error: {e.response.text}")
